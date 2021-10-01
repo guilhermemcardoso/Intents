@@ -21,6 +21,7 @@ public class MainActivity extends AppCompatActivity {
 
     ActivityResultLauncher<String> requisicaoPermissaoActivityLauncher;
     ActivityMainBinding activityMainBinding;
+    ActivityResultLauncher<Intent> imagePickResultLauncher;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,6 +40,21 @@ public class MainActivity extends AppCompatActivity {
                 discarTelefone();
             }
         });
+
+        imagePickResultLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == Activity.RESULT_OK) {
+                        Intent data = result.getData();
+                        Uri selectedImageUri = null;
+                        if (data != null) {
+                            selectedImageUri = data.getData();
+                        }
+                        if (null != selectedImageUri) {
+                            activityMainBinding.parameterIv.setImageURI(selectedImageUri);
+                        }
+                    }
+                });
     }
 
     @Override
@@ -69,7 +85,7 @@ public class MainActivity extends AppCompatActivity {
                 finish();
                 break;
             case R.id.actionMi:
-                Intent action = new Intent("OPEN_ACTION_ACTIVITY").putExtra(Intent.EXTRA_TEXT, activityMainBinding.parameterEt.getText().toString());
+                Intent action = new Intent(this, ActionActivity.class).putExtra(Intent.EXTRA_TEXT, activityMainBinding.parameterEt.getText().toString());
                 startActivity(action);
                 break;
             case R.id.viewMi:
@@ -80,6 +96,20 @@ public class MainActivity extends AppCompatActivity {
                 }
                 browser.setData(Uri.parse(url));
                 startActivity(browser);
+                break;
+            case R.id.pickMi:
+                Intent intent = new Intent();
+                intent.setType("image/*");
+                intent.setAction(Intent.ACTION_GET_CONTENT);
+                imagePickResultLauncher.launch(intent);
+                break;
+            case R.id.chooserMi:
+                Intent sendIntent = new Intent();
+                sendIntent.setAction(Intent.ACTION_SEND);
+                sendIntent.putExtra(Intent.EXTRA_TEXT, activityMainBinding.parameterEt.getText().toString());
+                sendIntent.setType("text/plain");
+                Intent shareIntent = Intent.createChooser(sendIntent, null);
+                startActivity(shareIntent);
                 break;
             default:
                 break;
